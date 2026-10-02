@@ -10,7 +10,7 @@ and Sardine branding. Phase 2 (conditional Bilt/Coinbase assets) is structured
 for but not built — see the stubs noted below.
 
 > Reference implementation, not production-hardened. No real auth, secrets
-> management, or persistence. See `PRD.md` for full scope.
+> management, or persistence.
 
 ## Why this exists
 
@@ -23,17 +23,20 @@ embed the Web SDK. That's exactly what this repo demonstrates.
 ## Layout
 
 ```
-IncodeWebIntegration/
-├── PRD.md          ← product/architecture doc
+IncodeWebIntegration-2.0/
 ├── README.md       ← you are here
+├── .gitignore
 ├── backend/        ← Node + Express: token minting + webhook listener
 │   ├── server.js
 │   ├── package.json
 │   └── .env.example
 └── frontend/       ← Vanilla JS + Vite: the Sardine-branded SDK page
     ├── index.html
-    ├── src/main.js
-    ├── src/style.css
+    ├── public/sardine-logo.svg
+    ├── src/main.js     ← SDK flow (setup, consent, ID, selfie, finish)
+    ├── src/style.css   ← Sardine skin + full-screen capture layout
+    ├── src/debug.js    ← optional on-screen debug panel (?debug=1)
+    ├── vite.config.js  ← dev proxy + ngrok/tunnel host settings
     ├── package.json
     └── .env.example
 ```
@@ -59,7 +62,7 @@ temporary `onboardingId` stands in for it until then.
    field this endpoint expects (no permanent customerId exists yet — confirm
    this mapping is fine for your account with your Sardine team), and returns
    `access_token` + `verification_id`.
-4. SDK runs: `<incode-consent>` → `<incode-id>` (front, back if two-sided, and ID processing) → `<incode-selfie>` → `getFinishStatus`.
+4. SDK runs: `<incode-consent>` → `<incode-id>` (document chooser, front, back if two-sided, and ID processing) → `<incode-selfie>` → `getFinishStatus`.
 5. Sardine processes with Incode and POSTs `document_verification.processed` to the backend webhook.
 6. **Upgrade to a permanent customerId.** Backend verifies the signature,
    reads the result, mints a permanent `customerId` (standing in for "your
@@ -104,6 +107,37 @@ run the camera flow.
 > **Camera needs HTTPS.** For phone testing, expose your local frontend with a
 > tunnel (ngrok / Tailscale / Localtunnel) and scan the QR. Production
 > needs HTTPS too (localhost is exempt for development).
+
+### Testing on a phone (ngrok)
+
+```bash
+ngrok http 5173                       # note the https://….ngrok-free.app URL
+# put it in frontend/.env, then restart `npm run dev`:
+VITE_PUBLIC_URL=https://abc123.ngrok-free.app
+```
+
+Leave `VITE_BACKEND_URL` blank so the page calls the backend through the Vite
+proxy (an absolute `http://localhost:8080` would point at the phone). Open the
+ngrok URL on the phone, or scan the QR shown on desktop.
+
+Add `?debug=1` to the URL to show an on-screen log panel (console output,
+errors, viewport size and visible buttons), which is handy because phones have
+no dev console.
+
+## ID capture options
+
+`<incode-id>` is configured in `captureId()` in `frontend/src/main.js`:
+
+| Option | Value | Effect |
+| ------ | ----- | ------ |
+| `enableId` / `enablePassport` | `true` / `true` | Required with `flow: false` (no dashboard config), otherwise the module reports "no accepted documents". |
+| `showDocumentChooserScreen` | `true` | Shows "Select how to verify" (Identity Card / Passport) before capture. Default is `false`. |
+| `showTutorial` | `false` | Skips the capture tutorial. |
+| `captureAttempts` | `3` | Retries before the module reports an error. |
+
+Set `enablePassport: false` for ID cards only; the chooser is then skipped.
+After the front of a two-sided ID the user taps **Scan the back** to continue.
+The passport path is less tested than the ID-card path.
 
 ## Testing without real documents
 
@@ -155,6 +189,19 @@ Differences from the 1.x version (`frontend/src/main.js`):
 - 2.0 renders different DOM/classes than 1.x, so the `Incode*` overrides in
   `style.css` no longer match and the Sardine skin on capture screens needs a
   restyle pass (2.0 exposes theming via `@incodetech/web/themes/*.css` and `setup({ uiConfig })`).
+
+## Troubleshooting
+
+| Symptom | Cause / fix |
+| ------- | ----------- |
+| `WasmHttpError: HTTP 403` | `VITE_INCODE_API_URL` must end in `/0`. |
+| `Cannot set properties of undefined (setting '__h')` / `n2.__H.__h` | DOM was swapped inside a module's own `onFinish`. `mountModule()` defers callbacks with `setTimeout(…, 0)`; keep that. |
+| "no accepted documents" from `<incode-id>` | Set `enableId` and/or `enablePassport` (needed with `flow: false`). |
+| Continue button disabled | Tick the consent checkbox; the light theme (`@incodetech/web/themes/light.css`) must be imported. |
+| Blank page after granting camera | The container needs a height; capture mode uses the `capture-active` class (full-screen). |
+| "Scan the back" button missing on iPhone | iOS `100vh` includes the area behind the toolbars. `syncCaptureHeight()` sizes the container to the visual viewport; keep it. |
+| Vite "blocked host" through ngrok | Set `VITE_PUBLIC_URL` and restart `npm run dev`. |
+| `git` says `index.lock: File exists` | A git process died or was interrupted; delete `.git/index.lock`. |
 
 ## Webhook signature
 
