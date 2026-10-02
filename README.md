@@ -49,7 +49,7 @@ temporary `onboardingId` stands in for it until then.
 
 0. **Onboarding risk check.** Browser shows a name-only form (first + last
    name) and posts it to the backend `POST /onboard`. The backend mints a
-   fresh `onboardingId` (kept for the whole onboarding) + `sessionKey`
+   fresh `onboardingId` (`onb_` + a SHA-256 hash of the entered name plus a random nonce, kept for the whole onboarding) + `sessionKey`
    (unique per IDV attempt), and calls Sardine `POST /v1/customers` with
    `customer.onboardingId` (no `customer.id` yet). If the returned risk
    `level` is `low`/`medium` we proceed to IDV below; `high`/`very_high` holds
@@ -65,7 +65,7 @@ temporary `onboardingId` stands in for it until then.
 4. SDK runs: `<incode-consent>` → `<incode-id>` (document chooser, front, back if two-sided, and ID processing) → `<incode-selfie>` → `getFinishStatus`.
 5. Sardine processes with Incode and POSTs `document_verification.processed` to the backend webhook.
 6. **Upgrade to a permanent customerId.** Backend verifies the signature,
-   reads the result, mints a permanent `customerId` (standing in for "your
+   reads the result, mints a permanent `customerId` (`cust_` + a hash of the `onboardingId` and the entered name, standing in for "your
    system creates a customer record now that IDV passed"), and calls Sardine
    `POST /v1/feedbacks` to link it back to the original `onboardingId` —
    Sardine's dashboard now treats both IDs as the same person, and all future

@@ -57,6 +57,35 @@ const {
 const PROCEEDABLE_RISK_LEVELS = new Set(['low', 'medium']);
 
 /**
+ * Dynamic ID pairing. Each onboarding attempt gets its own IDs, derived from the
+ * name typed on the onboarding screen plus a random nonce (so the same name
+ * submitted twice still yields distinct, non-colliding IDs):
+ *
+ *   onboardingId = "onb_"  + sha256(first | last | nonce)[:24]
+ *   customerId   = "cust_" + sha256(onboardingId | first | last)[:24]
+ *
+ * customerId is deterministic from the onboardingId, so the webhook can
+ * re-derive the same value later. Stand-in for "your system creates a customer
+ * record" - a real integration would use its own DB-generated id.
+ */
+const sha256Hex = (str) => crypto.createHash('sha256').update(str).digest('hex');
+const normName = (n) => String(n || '').trim().toLowerCase();
+
+function makeOnboardingId(firstName, lastName) {
+  const nonce = crypto.randomUUID();
+  return `onb_${sha256Hex(`${normName(firstName)}|${normName(lastName)}|${nonce}`).slice(0, 24)}`;
+}
+
+function makeCustomerId(onboardingId, firstName, lastName) {
+  return `cust_${sha256Hex(`${onboardingId}|${normName(firstName)}|${normName(lastName)}`).slice(0, 24)}`;
+}
+
+// onboardingId -> { firstName, lastName }, so the webhook can derive the
+// customerId from the name entered on the screen. In-memory (lost on restart;
+// the webhook falls back to the names on the verified document).
+const onboardingNames = new Map();
+
+/**
  * Append-only, one-JSON-object-per-line log of every Sardine customer API
  * call (/v1/customers, /v1/feedbacks) and every incoming webhook, so a full
  * interaction can be replayed/inspected after the fact. Defaults to
@@ -117,11 +146,10 @@ app.post('/onboard', async (req, res) => {
 
   // onboardingId is kept for the ENTIRE onboarding (through /verify-token and
   // the webhook); sessionKey is unique to this one IDV attempt.
-  // TEMP: hardcoded to a fixed test value while validating that both Sardine
-  // calls use the onboardingId (not a customerId) — swap back to
-  // crypto.randomUUID() once confirmed.
-  const onboardingId = 'onboarding_id_test';
+  // Derived from the entered name + a per-attempt nonce (see makeOnboardingId).
+  const onboardingId = makeOnboardingId(firstName, lastName);
   const sessionKey = crypto.randomUUID();
+  onboardingNames.set(onboardingId, { firstName, lastName });
 
   const payload = {
     customer: {
@@ -389,12 +417,16 @@ async function runPostIdvSequence({ sessionKey, onboardingId, riskLevel, status,
   await new Promise((resolve) => setTimeout(resolve, 10_000));
 
   // 3c) Stand-in for "your system creates a permanent customer record now
-  // that the user passed IDV." A real integration would look this up /
-  // create it in its own DB rather than using a fixed value here.
-  // TEMP: hardcoded to a fixed test value while validating the /v1/feedbacks
-  // call — swap back to crypto.randomUUID() (or a real customer record
-  // lookup) once confirmed.
-  const customerId = 'nbc_customer_id';
+  // that the user passed IDV." Derived from the onboardingId + the name typed
+  // on the onboarding screen (falls back to the verified document's name if
+  // the server restarted). A real integration would create it in its own DB.
+  const entered = onboardingNames.get(onboardingId) || {};
+  const customerId = makeCustomerId(
+    onboardingId,
+    entered.firstName || doc.firstName,
+    entered.lastName || doc.lastName
+  );
+  onboardingNames.delete(onboardingId);
   const approved = status !== 'failed' && !['high', 'very_high'].includes(riskLevel);
 
   const feedbackPayload = {
