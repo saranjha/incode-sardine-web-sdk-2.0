@@ -1,0 +1,337 @@
+/**
+ * Sardine IDV — branded styling for the Incode capture screens.
+ *
+ * Source: Sardine "Web UI Customization" (styling) guide.
+ * Any class prefixed with `Incode` is safe to style. DO NOT add CSS that
+ * resizes or repositions capture elements — it hurts completion/conversion.
+ *
+ * PHASE 1: Sardine brand only (this file).
+ * PHASE 2: swap the brand tokens below per program (sardine | bilt | coinbase).
+ *          One approach: set `data-brand` on <html> from VITE_BRAND_PROGRAM and
+ *          scope the :root tokens per [data-brand="..."]. Stubbed at the bottom.
+ */
+
+/* Placeholder brand font: Fragment Mono (Google Fonts). Swap for Sardine's
+   official typeface when available. */
+@import url('https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&display=swap');
+
+/* ---- Sardine brand tokens (Phase 1) ----
+   Placeholder monochrome black-on-white palette. Primary is near-black
+   (#181818); backgrounds are white. Swap in the official brand values. */
+:root {
+  --brand-primary: #181818;       /* Sardine near-black (placeholder) */
+  --brand-primary-dark: #000000;  /* hover / pressed */
+  --brand-on-primary: #ffffff;    /* text/icon on the dark primary */
+  --brand-accent: #181818;
+  --brand-bg: #ffffff;            /* white page background */
+  --brand-font: 'Fragment Mono', ui-monospace, monospace;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+div,
+p,
+h1,
+h2,
+h3,
+button,
+span,
+label {
+  font-family: var(--brand-font) !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+}
+
+/* ---- Sardine page chrome (host page, not Incode) ---- */
+.sardine-header {
+  margin-bottom: 24px;
+}
+.sardine-logo {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 24px;
+  height: 36px;        /* scales the SVG; width auto-keeps aspect ratio */
+  width: auto;
+  /* Drop in Sardine's official SVG at /public/sardine-logo.svg to replace
+     this recreation — no markup change needed. */
+}
+.sardine-tagline {
+  color: #555;
+  font-size: 14px;
+  margin-top: 4px;
+}
+.sardine-done {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.sardine-done h2 {
+  color: var(--brand-accent);
+  font-weight: 700 !important;
+}
+.sardine-status {
+  max-width: 420px;
+  margin: 16px auto;
+  padding: 16px 20px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sardine-status.sardine-error {
+  color: #7a1020;
+  background: rgba(227, 24, 55, 0.06);
+  border: 1px solid rgba(227, 24, 55, 0.3);
+  border-radius: 10px;
+}
+.sardine-status code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.sardine-link {
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* ---- Step 0: name-only onboarding form (customer checkpoint #1) ---- */
+.sardine-onboarding {
+  display: flex;
+  flex-direction: column;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 0 24px;
+  text-align: left;
+}
+.sardine-label {
+  font-size: 13px;
+  color: #555;
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+.sardine-label:first-of-type {
+  margin-top: 0;
+}
+.sardine-input {
+  height: 44px;
+  padding: 0 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: var(--brand-bg);
+  color: var(--brand-accent);
+}
+.sardine-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+.sardine-button {
+  margin-top: 24px;
+  height: 48px;
+  border: 1px solid var(--brand-primary);
+  border-radius: 12px;
+  background: var(--brand-primary);
+  color: var(--brand-on-primary);
+  font-size: 16px;
+  cursor: pointer;
+}
+.sardine-button:hover:not(:disabled) {
+  background: var(--brand-primary-dark);
+  border-color: var(--brand-primary-dark);
+}
+.sardine-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+#onboarding-error {
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+/* ---- Data-sharing consent screen ---- */
+.IncodeDefaultComponentContainer a {
+  font-size: 1em !important;
+  color: var(--brand-primary) !important;
+}
+
+.IncodeCombinedConsentLabelWrapper {
+  background: rgba(24, 24, 24, 0.06) !important;
+}
+
+.IncodeCombinedConsentButton {
+  border: 1px solid var(--brand-primary) !important;
+  border-radius: 12px !important;
+  background: var(--brand-primary) !important;
+  color: var(--brand-on-primary) !important;
+}
+
+.IncodeCombinedConsentButton:disabled {
+  border: 1px solid #cccccc !important;
+  background-color: #cccccc !important;
+  color: #808080 !important;
+}
+
+.IncodeCombinedConsentCheckbox:checked + div {
+  background: var(--brand-primary-dark) !important;
+}
+
+/* Consent surface: white background + brand text/font across the whole screen */
+.IncodeCombinedConsent,
+.IncodeDefaultComponentContainer {
+  background: var(--brand-bg) !important;
+  color: var(--brand-accent) !important;
+  font-family: var(--brand-font) !important;
+}
+
+/* Unchecked custom checkbox — monochrome outline (not the SDK default color) */
+.IncodeCombinedConsentCustomCheckbox {
+  border: 1.5px solid var(--brand-primary) !important;
+  border-radius: 4px !important;
+}
+
+/* Consent button hover / pressed */
+.IncodeCombinedConsentButton:hover:not(:disabled) {
+  background: var(--brand-primary-dark) !important;
+  border-color: var(--brand-primary-dark) !important;
+}
+
+/* Left-align the consent copy (overrides the inherited center alignment).
+   Set on OUR container so it cascades regardless of which consent screen
+   variant the SDK renders (Combined / Default / Recorder consent). */
+#verify-container.consent-step {
+  text-align: left;
+}
+.IncodeCombinedConsent,
+.IncodeCombinedConsentLabelWrapper {
+  text-align: left !important;
+}
+
+/* The SDK mounts the consent screen in a container (App$1 ->
+   .IncodeDefaultComponentContainer) that defaults to `position: fixed`,
+   sized to the full viewport — renderCombinedConsent doesn't expose a
+   disableFullScreen option to turn this off. Left alone, that fixed layer
+   paints over our page chrome (the Sardine header/logo) on any device the
+   SDK doesn't detect as desktop, i.e. phones.
+   Neutralize it, scoped to the consent step ONLY — do not extend this
+   selector to camera/selfie screens, which must stay truly fullscreen per
+   Incode's styling guidance. */
+#verify-container.consent-step .IncodeDefaultComponentContainer {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+
+/* ---- ID chooser screen (Driver's License / Passport / Visa) ---- */
+.IncodeIdCardButton {
+  border: 1px solid var(--brand-primary);
+  background: var(--brand-primary) !important;
+  box-shadow: 1px 3px #e0e0e0;
+}
+.IncodeIdCardButton div p {
+  color: var(--brand-on-primary) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.IncodeBookletButton {
+  border: 1px solid var(--brand-primary);
+  padding: 12px 20px !important;
+  background: var(--brand-primary) !important;
+  box-shadow: 1px 3px #e0e0e0;
+}
+.IncodeBookletButton div p {
+  color: var(--brand-on-primary) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Hide elements not needed in an embedded, single-language flow ---- */
+.IncodeCaptureIdNativeButton {
+  display: none !important;
+}
+.IncodeLanguageSwitcher {
+  display: none !important;
+}
+.IncodeRedirectFooterDesktop {
+  display: none !important;
+}
+
+/* =====================================================================
+ * PHASE 2 (stub) — per-program branding.
+ * Set <html data-brand="bilt"> (or coinbase) from VITE_BRAND_PROGRAM in
+ * main.js, then override the tokens here. Left commented intentionally.
+ * =====================================================================
+ *
+ * [data-brand="bilt"] {
+ *   --brand-primary: #0B6B5B;
+ *   --brand-primary-dark: #084c41;
+ * }
+ * [data-brand="coinbase"] {
+ *   --brand-primary: #0052FF;
+ *   --brand-primary-dark: #003ec2;
+ * }
+ */
+
+/* `hidden` must win over the display: flex/block set on these elements, otherwise
+   the onboarding form stays on screen and pushes the SDK screens down the page. */
+.sardine-onboarding[hidden],
+#verify-container[hidden] { display: none !important; }
+
+/* ---- Web SDK 2.0 capture layout ----
+   The SDK's screens size themselves with `height: 100%`, so every ancestor needs
+   a definite height. Make the <incode-*> elements block-level, and give the
+   container a full-viewport box while a camera step is active (set by
+   setCaptureMode() in main.js). Without this the camera view collapses to 0px
+   and the page is blank after the permission prompt. */
+incode-consent,
+incode-id,
+incode-selfie {
+  display: block;
+  width: 100%;
+}
+
+#verify-container.capture-active {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  /* index.html forces `min-height: 100vh` on #verify-container while the header is
+     hidden. On iOS `100vh` is taller than the visible area (it includes the space
+     behind the browser toolbars), which pushed the SDK's bottom button off-screen.
+     main.js sets the exact visible height inline; never let min-height exceed it. */
+  min-height: 0 !important;
+  max-height: 100%;
+  background: #000;
+}
+
+#verify-container.capture-active > incode-id,
+#verify-container.capture-active > incode-selfie {
+  height: 100%;
+}
+
+/* Result screens ("Successfully processed! Now let's capture the back" …) can be
+   taller than a phone viewport when the browser toolbar is showing (portrait ID
+   photo + title + button). The SDK scrolls that screen internally, but the action
+   button ends up below the fold and users never find it. Pin the button area to the
+   bottom of the screen so it is always visible. */
+.IncodeIdProcessingBottomArea {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--color-surface-neutral-0, #fff);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

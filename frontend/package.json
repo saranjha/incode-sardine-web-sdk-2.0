@@ -1,0 +1,20 @@
+{
+  "name": "sardine-idv-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sardine IDV example — Incode Web SDK page (Vanilla JS + Vite)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@incodetech/core": "2.3.1",
+    "@incodetech/web": "2.3.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

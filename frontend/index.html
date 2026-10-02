@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/src/style.css" />
+    <title>Sardine — Identity Verification</title>
+    <style>
+      #incode-container { height: 100%; width: 100%; margin: 0; padding: 0; }
+      #app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+      }
+      #verify-container { width: 100%; }
+      #app:has(> .sardine-header[style*="display: none"]) {
+        justify-content: flex-start;
+      }
+      #app:has(> .sardine-header[style*="display: none"]) #verify-container {
+        flex: 1;
+        min-height: 100vh;
+      }
+      #qrcode { margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <main id="app">
+      <!-- Sardine-owned page chrome. Phase 1 branding lives here + in style.css. -->
+      <header class="sardine-header">
+        <img class="sardine-logo" src="/sardine-logo.svg" alt="Sardine" />
+        <p class="sardine-tagline">Verify your identity to continue</p>
+      </header>
+
+      <!-- Step 0: name-only onboarding (customer checkpoint #1) before IDV starts. -->
+      <form id="onboarding-form" class="sardine-onboarding">
+        <label class="sardine-label" for="firstName">First name</label>
+        <input class="sardine-input" id="firstName" name="firstName" type="text" autocomplete="given-name" required />
+
+        <label class="sardine-label" for="lastName">Last name</label>
+        <input class="sardine-input" id="lastName" name="lastName" type="text" autocomplete="family-name" required />
+
+        <div id="onboarding-error" class="sardine-status sardine-error" hidden></div>
+
+        <button class="sardine-button" id="onboarding-submit" type="submit">Continue</button>
+      </form>
+
+      <!-- Desktop users get a QR code to hand off to their phone (camera needed). -->
+      <div id="qrcode"></div>
+
+      <!-- The Incode SDK renders consent + capture screens into here. -->
+      <div id="verify-container" hidden></div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
